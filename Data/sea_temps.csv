@@ -2,7 +2,7 @@
 Source: EPA's Climate Change Indicators in the United States: www.epa.gov/climate-indicators,,,
 "Data source: NOAA, 2016",,,
 Web update: August 2016,,,
-Units: temperature anomaly (°F),,,
+Units: temperature anomaly (Â°F),,,
 ,,,
 Year,Annual anomaly,Lower 95% confidence interval,Upper 95% confidence interval
 1880,-0.4700088,-0.672646261,-0.267371339
