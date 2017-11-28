@@ -1,0 +1,54 @@
+library(shiny)
+library(plotly)
+library(shinythemes)
+library(dplyr)
+#hur_start$Latitude<-(-1)*hur_start$Latitude
+years<-c(1851:2015)
+hur_start<-hur[!duplicated(hur$ID), ] #Dataset of only origin of systems.
+Sys.setenv('MAPBOX_TOKEN' = 'pk.eyJ1Ijoic3VzbWFuaSIsImEiOiJjamFhZnJlb3YwczdmMzJxaXlmcHJ0ZGZ2In0.vdCC--CzL7cM-XsG8yCrFw')
+ui<-fluidPage(
+  theme = shinytheme("cosmo"),
+  navbarPage("Hurricane Exploration", 
+             tabPanel("Plot1",
+                      sidebarPanel(
+                        tags$div(
+                          tags$p("Choose a system by its year and name and discover all other similar hurricanes with similar origins.")),
+                        selectInput(inputId = "year", label = "Year", as.list(years)),
+                        textInput(inputId = "name", label = "Name of Storm", "Name"),
+                        actionButton("goButton", "Go!")
+                      ),
+                      mainPanel(
+                        plotlyOutput("origin")
+                      )
+                      
+             )
+  )
+)
+
+
+server<- function(input, output){
+  output$origin<-renderPlotly({
+    input$goButton
+    data1<-reactive({hur[hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$name)),]})
+    data2<-reactive({top_n(select(data1(), Latitude, Longitude),1)})
+    dataf<-reactive({hur_start[hur_start$Latitude >= data2()$Latitude-1 & hur_start$Latitude<=data2()$Latitude+1 & hur_start$Longitude >= data2()$Longitude-1 & hur_start$Longitude<=data2()$Longitude+1,]})
+    data3<-reactive({top_n(dataf(), 10)})
+    full<-reactive({semi_join(hur, data3(), by = "ID")})
+    plot_mapbox(mode = 'scattermapbox') %>%
+      add_markers(
+        data = full(), x = ~Longitude, y = ~Latitude, text=~paste('Name: ', Name, '<br>Max Wind:', Maximum.Wind, '<br>Date: ', Date), color=~ID,
+        size = ~Maximum.Wind, alpha = 0.5) %>%
+      layout(
+        plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
+        mapbox = list(style = 'dark',
+                      zoom = 1.5,
+                      center = list(lat = median(hur$Latitude),
+                                    lon = median(hur$Longitude))),
+        margin = list(l = 0, r = 0,
+                      b = 0, t = 0,
+                      pad = 0),
+        showlegend=FALSE)
+  })
+}
+
+shinyApp(ui = ui, server = server)
