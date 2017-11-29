@@ -9,21 +9,23 @@ Sys.setenv('MAPBOX_TOKEN' = 'pk.eyJ1Ijoic3VzbWFuaSIsImEiOiJjamFhZnJlb3YwczdmMzJx
 ui<-fluidPage(
   theme = shinytheme("cosmo"),
   navbarPage("Hurricane Exploration", 
-             tabPanel("Plot1",
+             tabPanel("Origin",
                       sidebarPanel(
                         tags$div(
                           tags$p("Choose a system by its year and name and discover all other similar hurricanes with similar origins.")),
                         tags$head(tags$style("#origin{height:100vh !important;}")),
                         selectInput(inputId = "year", label = "Year", as.list(years)),
-                        textInput(inputId = "name", label = "Name of Storm", "Name"),
-                        actionButton("goButton", "Go!"), width = 2
+                        uiOutput('names'),
+                        #textInput(inputId = "name", label = "Name of Storm", "Name")
+                        actionButton("goButton", "Go!"), 
+                        width = 2
                       ),
                       mainPanel(
                         plotlyOutput("origin"), width = 10
                       )
                       
              ),
-             tabPanel("Plot2",
+             tabPanel("Closest Paths",
                      sidebarPanel(
                                tags$div(
                                  tags$p("Finding top 5 closest tracks.")),
@@ -36,9 +38,13 @@ ui<-fluidPage(
 
 
 server<- function(input, output){
+  output$names<-renderUI({
+    butt<-reactive({unique(hur$Name[hur$Date>=as.Date(paste(input$year,"-01-01", sep=''))& hur$Date <= as.Date(paste(input$year,"-12-31",sep=''))])})
+    selectInput("names", "Names:", butt())
+  })
   output$origin<-renderPlotly({
     input$goButton
-    data1<-reactive({hur[hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$name)),]})
+    data1<-reactive({hur[hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$names)),]})
     data2<-reactive({top_n(select(data1(), Latitude, Longitude),1)})
     dataf<-reactive({hur_start[hur_start$Latitude >= data2()$Latitude-1 & hur_start$Latitude<=data2()$Latitude+1 & hur_start$Longitude >= data2()$Longitude-1 & hur_start$Longitude<=data2()$Longitude+1,]})
     data3<-reactive({top_n(dataf(), 10)})
@@ -50,7 +56,7 @@ server<- function(input, output){
       layout(
         plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
         mapbox = list(style = 'dark',
-                      zoom = 3,
+                      zoom = 3.5,
                       center = list(lat = median(hur$Latitude),
                                     lon = median(hur$Longitude))),
         margin = list(l = 0, r = 0,
@@ -60,7 +66,7 @@ server<- function(input, output){
   })
   output$tracks<-renderPlotly({
     input$goButton
-    data1<-reactive({hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$name))})
+    data1<-reactive({hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$names))})
     example2<-filter(hur, data1())
     ex<-filter(hur, Latitude >= (example2$Latitude-1) &
                Latitude<=example2$Latitude+1 &
@@ -75,7 +81,7 @@ server<- function(input, output){
       layout(
         plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
         mapbox = list(style = 'dark',
-                      zoom = 3,
+                      zoom = 3.5,
                       center = list(lat = median(hur$Latitude),
                                     lon = median(hur$Longitude))),
         margin = list(l = 0, r = 0,
@@ -85,7 +91,7 @@ server<- function(input, output){
     p7
   })
   output$table<-renderTable({
-    data1<-reactive({hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$name))})
+    data1<-reactive({hur$Date >= as.Date(paste(isolate(input$year),"-01-01", sep='')) & hur$Date <= as.Date(paste(isolate(input$year),"-12-31",sep='')) & hur$Name == toupper(isolate(input$names))})
     example2<-filter(hur, data1())
     input$goButton
     ex<-filter(hur, Latitude >= (example2$Latitude-1) &
