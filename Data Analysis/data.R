@@ -139,14 +139,14 @@ max_winds<-data.frame(hur) %>%
 
 #First Location of Maximum Wind for Major Hurricane
 plot_mapbox(mode = 'scattermapbox') %>%
-       add_markers(
-             data = max_winds[max_winds$Maximum.Wind>115,], x = ~Longitude, y = ~Latitude, text=~paste('Name: ', Name, '<br>Max Wind:', Maximum.Wind, '<br>Date: ', Date), split=~Name,
-             size = ~Maximum.Wind, alpha = 0.5) %>%
-       layout(
-             plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
-             mapbox = list(style = 'dark',zoom = 1.5, center = list(lat = median(hur$Latitude), lon = median(hur$Longitude)))
-             margin = list(l = 0, r = 0, b = 0, t = 0, pad = 0),
-             showlegend=FALSE)
+  add_markers(
+    data = max_winds[max_winds$Maximum.Wind>115,], x = ~Longitude, y = ~Latitude, text=~paste('Name: ', Name, '<br>Max Wind:', Maximum.Wind, '<br>Date: ', Date), split=~Name,
+    size = ~Maximum.Wind, alpha = 0.5) %>%
+  layout(
+    plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
+    mapbox = list(style = 'dark',zoom = 1.5, center = list(lat = median(hur$Latitude), lon = median(hur$Longitude))),
+    margin = list(l = 0, r = 0, b = 0, t = 0, pad = 0),
+    showlegend=FALSE)
 
 p5<-plot_ly(x = format.Date(max_winds$Date, "%m"), type = "histogram")
 p6<-plot_ly(x = format.Date(max_winds$Date, "%Y"), type = "histogram")
@@ -168,7 +168,7 @@ example1<-hur_start %>%
            (Longitude >= as.numeric(example$Longitude-1) & as.numeric(Longitude<=example$Longitude+1)))%>%
   top_n(10,ID)
 full<-semi_join(hur, example1, by = "ID")
-  
+
 p6 <- plot_mapbox(mode = 'scattermapbox') %>%
   add_markers(
     data = full, x = ~Longitude, y = ~Latitude, text=~paste('Name: ', Name, '<br>Max Wind:', Maximum.Wind, '<br>Date: ', Date), color=~Name,
@@ -214,21 +214,3 @@ p7 <- plot_mapbox(mode = 'scatterbox') %>%
                   pad = 0),
     showlegend=FALSE)
 p7
-
-plot_ly(hur[hur$Date >= "2005-01-01" & hur$Name == 'WILMA',], x=~Latitude, y=~Maximum.Wind, type='scatter', mode='markers', frame=~Date2)
-
-p8 <- plot_mapbox(mode = 'scatterbox') %>%
-  add_markers(
-    data = hur_start, x = ~Longitude, y = ~Latitude, text=~paste('Name: ', Name, '<br>Max Wind:', Maximum.Wind, '<br>Date: ', Date), color=~ID,
-    size = ~Maximum.Wind, alpha = 0.5) %>%
-  layout(
-    plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
-    mapbox = list(style = 'dark',
-                  zoom = 1.5,
-                  center = list(lat = median(hur$Latitude),
-                                lon = median(hur$Longitude))),
-    margin = list(l = 0, r = 0,
-                  b = 0, t = 0,
-                  pad = 0),
-    showlegend=FALSE)
-p8
