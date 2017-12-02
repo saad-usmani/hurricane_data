@@ -127,7 +127,7 @@ p4<-plot_ly(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="09"], type = "his
 
 max_winds<-data.frame(hur) %>%
   group_by(ID) %>%
-  dplyr::summarise(Max.Winds = max(Maximum.Wind))
+  dplyr::summarise(Maximum.Wind = max(Maximum.Wind))
 
 full_join(max_winds, hur, by = c('ID', 'Maximum.Wind'))
 
