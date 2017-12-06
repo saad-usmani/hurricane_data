@@ -214,3 +214,18 @@ p7 <- plot_mapbox(mode = 'scatterbox') %>%
                   pad = 0),
     showlegend=FALSE)
 p7
+
+
+##Creating a heatmap of origin of all hurricane data
+atlantic_map<-get_map(location = "puerto rico", zoom = 4)
+
+#first, plotting the points
+ggmap(florida, extent = "device") + geom_point(aes(x = Longitude, y = Latitude), colour = "red", 
+                                                 alpha = 0.1, size = 2, data = hur_start)
+
+#second, plotting density maps across the ocean
+ggmap(florida, extent = "device") + geom_density2d(data = hur_start, 
+                                                   aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur_start, 
+                                                                                                               aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01, 
+                                                                                                               bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + 
+  scale_alpha(range = c(0, 0.3), guide = FALSE)
