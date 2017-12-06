@@ -118,10 +118,12 @@ p2 <- plot_mapbox(mode = 'scattermapbox') %>%
                   pad = 0),
     showlegend=FALSE)
 
-p3 <- plot_ly(alpha = 0.6) %>%
-  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="09"]) %>%
-  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="06"]) %>%
-  layout(barmode = "overlay")
+(p3 <- plot_ly(alpha = 0.6) %>%
+  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="09" & hur$Maximum.Wind>0], name = 'September', autobinx=TRUE) %>%
+  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="06" & hur$Maximum.Wind>0], name = 'June') %>%
+  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="07" & hur$Maximum.Wind>0], name = 'July') %>%
+  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="08" & hur$Maximum.Wind>0], name = 'August') %>%
+  layout(barmode = "stack"))
 
 p4<-plot_ly(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="09"], type = "histogram")
 
@@ -223,7 +225,7 @@ atlantic_map<-get_map(location = "puerto rico", zoom = 4)
 ggmap(florida, extent = "device") + geom_point(aes(x = Longitude, y = Latitude), colour = "red", 
                                                  alpha = 0.1, size = 2, data = hur_start)
 
-#second, plotting density maps across the ocean
+#second, plotting density maps across the
 ggmap(florida, extent = "device") + geom_density2d(data = hur_start, 
                                                    aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur_start, 
                                                                                                                aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01, 
