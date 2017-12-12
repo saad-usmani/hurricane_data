@@ -159,7 +159,7 @@ summary(lm(Maximum.Wind ~ Minimum.Pressure, data = max_winds))
 
 Thus, we can see that the maximum winds of a tropical system are highly correlated with a lower minimum pressure. In fact, for every 1.25 mb decrease in minimum pressure, we increase by 1 kt (1.15 mph) in maximum wind for a given time.
 
-*RShiny analysis*
+### R Shiny Web Application
 
 We created an R Shiny Application that would help us visualize different systems and answer some questions we had about the data. The current version of th application has three visualizations that give us insight about different types of tropical systems based on origin and and closest tracks.
 
