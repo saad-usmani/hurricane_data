@@ -123,7 +123,30 @@ We can also create histograms:
   layout(barmode = "stack"))
 ```
 
-*Insert heat maps down here and explanation here*
+### Heat Map Visualizations
+
+Let's look at frequency of hurricanes by month in a 2D Density heat map.
+
+```{r}
+##Creating a heatmap of origin of all hurricane data
+atlantic_map<-get_map(location = "puerto rico", zoom = 4)
+
+hur.aug.freq<-hur[format.Date(hur$Date, "%m")=="08",]
+hur.sep.freq<-hur[format.Date(hur$Date, "%m")=="09",]
+hur.oct.freq<-hur[format.Date(hur$Date, "%m")=="10",]
+hur.nov.freq<-hur[format.Date(hur$Date, "%m")=="11",]
+
+par(mfrow = c(2,2))
+
+#second, plotting density maps across the
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.aug.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.aug.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.sep.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.sep.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.oct.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.oct.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.nov.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.nov.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+```
 
 ### Minimum Pressure and Maximum Wind Relationship
 
