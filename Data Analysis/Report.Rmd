@@ -1,12 +1,12 @@
 ---
 title: "Hurricane Hunters"
-author: "Saad Usmani"
-date: "December 5, 2017"
+author: "Saad Usmani, Richard Decal, Beau Britain"
+date: "December 14, 2017"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 require("data.table")
 require("ggplot2")
 require('lubridate')
@@ -15,6 +15,7 @@ require('sp')
 require('ggmap')
 require('plotly')
 require('dplyr')
+require("broom")
 ```
 
 # Introduction
@@ -62,6 +63,8 @@ Sys.setenv('MAPBOX_TOKEN' = 'pk.eyJ1Ijoic3VzbWFuaSIsImEiOiJjamFhZnJlb3YwczdmMzJx
 
 Then, we can focus on one specific hurricane, like Hurricane Katrina from 2005, and plot its track:
 
+\bigskip
+
 ```{r}
 p <- plot_mapbox(mode = 'scattermapbox') %>%
   add_markers(
@@ -80,8 +83,10 @@ p <- plot_mapbox(mode = 'scattermapbox') %>%
 p
 ```
 
+\bigskip
 
 Looks pretty good! As maximum wind increases over time, so does to size of the dots. You can hover over the data points and get the maximum wind and date at the point in time. 
+\bigskip
 
 We can create even more complex and colorful graphs that can really grab anyone's attention. We plotted one track, but why don't we try to graph the tracks of all major hurricanes that formed in September?
 
@@ -103,6 +108,8 @@ p2 <- plot_mapbox(mode = 'scattermapbox') %>%
 p2
 ```
 
+\bigskip
+
 Again, we used mapbox and plotly in conjunction to specify hurricane winds that were only above 96 knots (equal to over 110 MPH) and only in the month of September. We also colored each track by their specific ID so we can distinguish tracks better. 
 
 We can also create histograms:
@@ -116,4 +123,40 @@ We can also create histograms:
   layout(barmode = "stack"))
 ```
 
+*Insert heat maps down here and explanation here*
 
+### Minimum Pressure and Maximum Wind Relationship
+
+Here, we look at Maximum Wind vs. Minimum Pressure:
+
+```{r}
+hur_new<-hur[hur$Maximum.Wind>0 & hur$Minimum.Pressure>0,] #Getting rid of negative values
+
+max_winds<-data.frame(hur_new) %>%
+  group_by(ID, Minimum.Pressure) %>%
+  dplyr::summarise(Maximum.Wind = max(Maximum.Wind))
+
+
+m <- loess(Maximum.Wind ~ Minimum.Pressure, data = max_winds)
+
+(min_p <- plot_ly(max_winds, x = ~Minimum.Pressure, color = 'rgb(255, 0, 0)') %>%
+  add_markers(y = ~Maximum.Wind, text = rownames(max_winds), showlegend = FALSE, opacity = 0.5) %>%
+  add_lines(y = ~fitted(loess(Maximum.Wind ~ Minimum.Pressure)),
+            line = list(color = 'rgba(7, 164, 181, 1)'),
+            name = "Loess Smoother") %>%
+  add_ribbons(data = augment(m),
+              ymin = ~.fitted - 1.96 * .se.fit,
+              ymax = ~.fitted + 1.96 * .se.fit,
+              line = list(color = 'rgba(7, 164, 181, 0.05)'),
+              fillcolor = 'rgba(7, 164, 181, 0.2)',
+              name = "Standard Error") %>%
+  layout(xaxis = list(title = 'Minimum Pressure (mb)'),
+         yaxis = list(title = 'Maximum Winds (kt)'),
+         legend = list(x = 0.80, y = 0.90)))
+
+summary(lm(Maximum.Wind ~ Minimum.Pressure, data = max_winds))
+```
+
+Thus, we can see that the maximum winds of a tropical system are highly correlated with a lower minimum pressure. In fact, for every 1.25 mb decrease in minimum pressure, we increase by 1 kt (1.15 mph) in maximum wind for a given time.
+
+*RShiny analysis*
