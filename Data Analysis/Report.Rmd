@@ -152,6 +152,34 @@ We see some interesting relationships between the peak months of August - Novemb
 
 It's even more interesting to see how close August and September tracks seem to be, with the difference seemingly being the frequency. Comparing this to October and November where there is more of a concentration with Carribean tracks. I'm sure there is more of an atmospheric and meteorogical explanation for this. 
 
+That looked fantastic, but can we see where the maximum winds were located for all systems?
+
+```{r}
+hur_new<-hur[hur$Maximum.Wind>0 & hur$Minimum.Pressure>0,] #Getting rid of negative values
+
+max_winds<-data.frame(hur_new) %>%
+  group_by(ID, Minimum.Pressure, Latitude, Longitude) %>%
+  dplyr::summarise(Maximum.Wind = max(Maximum.Wind))
+
+max_winds.major<-max_winds[max_winds$Maximum.Wind>96,]
+
+par(mfrow = c(1,1))
+
+```
+
+For all systems and where they got their peak strength:
+
+```{r}
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = max_winds, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = max_winds, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+```
+
+For all major hurricanes [>96 kt (110 mph)] and where they accumlated their peak strength:
+
+```{r}
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = max_winds.major, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = max_winds.major, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+```
+
+It's interesting to see that for all systems (hurricanes, tropical storms, tropical depression), the peak strength was along the east coast. But, when we only account for major hurricanes, we see a long strip through the upper carribean and Bahamas where storms accumulated their peak strength. It's interesting to also see that both Category 5 hurricanes from 2017 (Irma and Maria) from this year also accumulated their maximum wind along this strip. 
 
 ### Minimum Pressure and Maximum Wind Relationship
 
@@ -160,15 +188,14 @@ Here, we look at Maximum Wind vs. Minimum Pressure:
 ```{r}
 hur_new<-hur[hur$Maximum.Wind>0 & hur$Minimum.Pressure>0,] #Getting rid of negative values
 
-max_winds<-data.frame(hur_new) %>%
+max_winds2<-data.frame(hur_new) %>%
   group_by(ID, Minimum.Pressure) %>%
   dplyr::summarise(Maximum.Wind = max(Maximum.Wind))
 
+m <- loess(Maximum.Wind ~ Minimum.Pressure, data = max_winds2)
 
-m <- loess(Maximum.Wind ~ Minimum.Pressure, data = max_winds)
-
-(min_p <- plot_ly(max_winds, x = ~Minimum.Pressure, color = 'rgb(255, 0, 0)') %>%
-  add_markers(y = ~Maximum.Wind, text = rownames(max_winds), showlegend = FALSE, opacity = 0.5) %>%
+(min_p <- plot_ly(max_winds2, x = ~Minimum.Pressure, color = 'rgb(255, 0, 0)') %>%
+  add_markers(y = ~Maximum.Wind, text = rownames(max_winds2), showlegend = FALSE, opacity = 0.5) %>%
   add_lines(y = ~fitted(loess(Maximum.Wind ~ Minimum.Pressure)),
             line = list(color = 'rgba(7, 164, 181, 1)'),
             name = "Loess Smoother") %>%
@@ -182,7 +209,7 @@ m <- loess(Maximum.Wind ~ Minimum.Pressure, data = max_winds)
          yaxis = list(title = 'Maximum Winds (kt)'),
          legend = list(x = 0.80, y = 0.90)))
 
-summary(lm(Maximum.Wind ~ Minimum.Pressure, data = max_winds))
+summary(lm(Maximum.Wind ~ Minimum.Pressure, data = max_winds2))
 ```
 
 Thus, we can see that the maximum winds of a tropical system are highly correlated with a lower minimum pressure. In fact, for every 1.25 mb decrease in minimum pressure, we increase by 1 kt (1.15 mph) in maximum wind for a given time.
