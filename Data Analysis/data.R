@@ -231,3 +231,27 @@ ggmap(florida, extent = "device") + geom_density2d(data = hur_start,
                                                                                                                aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01, 
                                                                                                                bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + 
   scale_alpha(range = c(0, 0.3), guide = FALSE)
+
+#Picking a latitude and longitude
+input<-c(28.0,-94.8)
+max1<-75
+input.lat<- hur[hur$Latitude >= (input[1]-1) & hur$Latitude <= (input[1]+1),]
+input.lng<-hur[hur$Longitude >= (input[2]-1) & hur$Longitude <= (input[2]+1),]
+input.max<-hur[hur$Maximum.Wind>=(max1-5) & hur$Maximum.Wind <= (max1+5),]
+full_input<-hur[hur$Latitude >= (input[1]-1) & hur$Latitude <= (input[1]+1) & hur$Longitude >= (input[2]-1) & hur$Longitude <= (input[2]+1) & hur$Maximum.Wind>=(max1-5) & hur$Maximum.Wind <= (max1+5),]
+full_join<-arrange(count(group_by(full_input, ID), Maximum.Wind), desc(Maximum.Wind))[1:5,]
+full_join2<-semi_join(hur, full_join, by = "ID")
+p7 <- plot_mapbox(mode = 'scatterbox') %>%
+  add_markers(
+    data = full_join2, x = ~Longitude, y = ~Latitude, text=~paste('Name: ', Name, '<br>Max Wind:', Maximum.Wind, '<br>Date: ', Date), color=~ID,
+    size = ~Maximum.Wind, alpha = 0.5) %>%
+  layout(
+    plot_bgcolor = '#191A1A', paper_bgcolor = '#191A1A',
+    mapbox = list(style = 'dark',
+                  zoom = 1.5,
+                  center = list(lat = median(hur$Latitude),
+                                lon = median(hur$Longitude))),
+    margin = list(l = 0, r = 0,
+                  b = 0, t = 0,
+                  pad = 0),
+    showlegend=FALSE)
