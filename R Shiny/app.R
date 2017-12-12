@@ -49,8 +49,8 @@ ui<-fluidPage(
              #          sidebarPanel(
              #            tags$div(
              #              tags$p("Creates a heatmap.")),
-             #            tags$head(tags$style("#origin{height:100vh !important;}")), width = 2
-             #          ), 
+             #            tags$head(tags$style("#heat{height:100vh !important;}")), width = 2
+             #          ),
              #          tabsetPanel(
              #            tabPanel(plotOutput("heat"), width = 10),
              #            tabPanel(plotOutput("hj"))
@@ -68,7 +68,7 @@ ui<-fluidPage(
              tabPanel("Path Finder",
                       sidebarPanel(
                         tags$div(
-                          tags$p("Choose a system by its year and name and discover all other similar hurricanes with similar origins.")),
+                          tags$p("Choose a Latitude & Longitude coordinate (Signed Degrees Format: DDD.ddd) and the wind speed in kt (knots)")),
                         tags$head(tags$style("#predict{height:100vh !important;}")),
                           textInput(inputId = "lat", label = "Enter Latitude"),
                           textInput(inputId = "lng", label = "Enter Longitude"),
@@ -118,10 +118,10 @@ server<- function(input, output){
   #   heatf<-reactive({hur_start[hur_start$Latitude >= heat2()$Latitude-1 & hur_start$Latitude<=heat2()$Latitude+1 & hur_start$Longitude >= heat2()$Longitude-1 & hur_start$Longitude<=heat2()$Longitude+1,]})
   #   heat3<-reactive({top_n(heatf(), 10)})
   #   fullheat<-reactive({semi_join(hur, heat3(), by = "ID")})
-  #   heat<-ggmap(atlantic_map, extent = "device") + geom_density2d(data = fullheat(), 
-  #                                                                 aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = fullheat(), 
-  #                                                                                                                                aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01, 
-  #                                                                                                                                bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + 
+  #   heat<-ggmap(atlantic_map, extent = "device") + geom_density2d(data = fullheat(),
+  #                                                                 aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = fullheat(),
+  #                                                                                                                                aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,
+  #                                                                                                                                bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") +
   #     scale_alpha(range = c(0, 0.3), guide = FALSE)
   #   heat
   # }, width = 800, height = 600)
