@@ -2,7 +2,13 @@
 title: "Hurricane Hunters"
 author: "Saad Usmani, Richard Decal, Beau Britain"
 date: "December 14, 2017"
-output: html_document
+output: 
+  prettydoc::html_pretty:
+    toc: true # table of content true
+    toc_depth: 3  # upto three depths of headings (specified by #, ## and ###)
+    number_sections: false  ## if you want number sections at each table header
+    theme: cayman  # many options for theme, this one is my favorite.
+    highlight: github  # specifies the syntax highlighting style
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +38,7 @@ With time series data, there are a lot of questions we could ask. We haven't don
 
 For some of the questions, we created an R Shiny application which would allow a user to enter their desired system based on year, and find all the relevant visualizations associated with it. For the other questions, we created some very interesting plots that reveal a lot about these magnificent storms. 
 
-## Cleaning
+# Cleaning
 
 First, we imported and cleaned the data. This was crucial since this is time series data and there were things we needed to change specifically with the dates that would let R read them properly. We used the 'lubridate' package that made this process fairly easy. 
 
@@ -52,6 +58,8 @@ The cleaning, as you can see, is very simple, but it allows us to create some tr
 The structure of our clearned dataset has over 50,000 single observations of system data throughout time, with over 1,000 unique cases. There are 22 variables in this data set, but we only focus on a few: ID, Year, Date, Time, Latitude, Longitude, Minimum Pressure, Maximum Pressure.
 
 With this knowledge, we can continue to explore - and munge. 
+
+# Visualizations
 
 ## Basic Visualizations
 
@@ -112,18 +120,43 @@ p2
 
 Again, we used mapbox and plotly in conjunction to specify hurricane winds that were only above 96 knots (equal to over 110 MPH) and only in the month of September. We also colored each track by their specific ID so we can distinguish tracks better. 
 
-We can also create histograms:
+##Histograms and Assumptions
 
 ```{r}
-(p3 <- plot_ly(alpha = 0.6) %>%
-  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="09" & hur$Maximum.Wind>0], name = 'September', autobinx=TRUE) %>%
-  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="06" & hur$Maximum.Wind>0], name = 'June') %>%
-  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="07" & hur$Maximum.Wind>0], name = 'July') %>%
-  add_histogram(x = hur$Maximum.Wind[format.Date(hur$Date, "%m")=="08" & hur$Maximum.Wind>0], name = 'August') %>%
-  layout(barmode = "stack"))
+
+hur_new<-hur[hur$Maximum.Wind>0 & hur$Minimum.Pressure>0,] #Getting rid of negative values
+
+max_winds<-data.frame(hur_new) %>%
+  group_by(ID) %>%
+  filter(Maximum.Wind == max(Maximum.Wind)) %>%
+  filter(row_number() <= 1) 
+
+
+
+(p6<-plot_ly(x = format.Date(max_winds$Date, "%Y"), type = "histogram") %>% layout(title = "Systems by Year"))
+(p7<-plot_ly(x = format.Date(max_winds$Date, "%m%d"), type = "histogram") %>% layout(title = "Systems by Month/Day"))
 ```
 
-### Heat Map Visualizations
+The first looks at the number of hurricanes per year, and you might think that there has been a rise of tropical systems over the years, but it slightly misleading. The bigggest caveat to the data set is that satellite data didn't really come to fruition until the 1950s. Before that hurricanes and tropical systems were only recorded by ships passing through or if these systems actually hit the American coastline. Tropical systems that never hit land are not included in this data. Also, the data that was captured before this time was inexact and very imprecise. We only have estimates of maximum wind strength for exceptionally strong hurricanes because most on-land devices would break after recording 120 mph. 
+
+Therefore, we can't really say that hurricanes are getting stronger or more frequent over the years, because we only have about 40 years of actual consistent data. 
+
+The second histogram is by month and day, and it shows what you expect. The climatogical peak of hurricane season is around September 12th, and we see that here. For reference, Hurricane Irma hit us on the morning of September 11th.
+
+What about the claim that although hurricane frequency might be staying constant, the storms themselves are getting stronger? Let's look into that. Here, I filtered by major hurricanes (>96 kt or >110 mph) and tried to see if there were any trends over the years.
+
+```{r}
+major_winds<-data.frame(hur[hur$Maximum.Wind>96,]) %>%
+  group_by(ID) %>%
+  filter(Maximum.Wind == max(Maximum.Wind)) %>%
+  filter(row_number() <= 1) 
+
+(mj.plot<-plot_ly(x = format.Date(major_winds$Date, "%Y"), type = "histogram") %>% layout(title = "Major Hurricanes by Year"))
+```
+
+Again, we can't really say for certain. The frequency of major hurricanes doesn't really provide a trend here. It looks like there were less before 1900 but again we have to keep in mind the accuracy of that data. 
+
+##Heat Map Visualizations
 
 Let's look at frequency of hurricanes by month in a 2D Density heat map.
 
@@ -155,13 +188,6 @@ It's even more interesting to see how close August and September tracks seem to 
 That looked fantastic, but can we see where the maximum winds were located for all systems?
 
 ```{r}
-hur_new<-hur[hur$Maximum.Wind>0 & hur$Minimum.Pressure>0,] #Getting rid of negative values
-
-max_winds<-data.frame(hur_new) %>%
-  group_by(ID, Minimum.Pressure, Latitude, Longitude) %>%
-  dplyr::summarise(Maximum.Wind = max(Maximum.Wind))
-
-max_winds.major<-max_winds[max_winds$Maximum.Wind>96,]
 
 par(mfrow = c(1,1))
 
@@ -176,12 +202,12 @@ ggmap(atlantic_map, extent = "device") + geom_density2d(data = max_winds, aes(x 
 For all major hurricanes [>96 kt (110 mph)] and where they accumlated their peak strength:
 
 ```{r}
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = max_winds.major, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = max_winds.major, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = major_winds, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = major_winds, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
 ```
 
 It's interesting to see that for all systems (hurricanes, tropical storms, tropical depression), the peak strength was along the east coast. But, when we only account for major hurricanes, we see a long strip through the upper carribean and Bahamas where storms accumulated their peak strength. It's interesting to also see that both Category 5 hurricanes from 2017 (Irma and Maria) from this year also accumulated their maximum wind along this strip. 
 
-### Minimum Pressure and Maximum Wind Relationship
+## Minimum Pressure and Maximum Wind Relationship
 
 Here, we look at Maximum Wind vs. Minimum Pressure:
 
@@ -214,7 +240,7 @@ summary(lm(Maximum.Wind ~ Minimum.Pressure, data = max_winds2))
 
 Thus, we can see that the maximum winds of a tropical system are highly correlated with a lower minimum pressure. In fact, for every 1.25 mb decrease in minimum pressure, we increase by 1 kt (1.15 mph) in maximum wind for a given time.
 
-### R Shiny Web Application
+# [R Shiny Web Application](http://susmani.shinyapps.io/hurricane)
 
 We created an R Shiny Application that would help us visualize different systems and answer some questions we had about the data. The current version of the application has three visualizations that give us insight about different types of tropical systems based on origin, closest tracks, and individual Latitude/Longitude points grouped by windspeed.
 

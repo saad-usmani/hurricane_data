@@ -152,12 +152,22 @@ plot_mapbox(mode = 'scattermapbox') %>%
 
 p5<-plot_ly(x = format.Date(max_winds$Date, "%m"), type = "histogram")
 p6<-plot_ly(x = format.Date(max_winds$Date, "%Y"), type = "histogram")
-p7<-plot_ly(x = format.Date(max_winds$Date, "%Y%m%d"), type = "histogram")
+p7<-plot_ly(x = format.Date(max_winds$Date, "%m%d"), type = "histogram")
+
+major_winds<-data.frame(hur[hur$Maximum.Wind>96,]) %>%
+  group_by(ID) %>%
+  filter(Maximum.Wind == max(Maximum.Wind)) %>%
+  filter(row_number() <= 1) 
+
+mj.plot<-plot_ly(x = format.Date(major_winds$Date, "%Y"), type = "histogram")
+mj.plot2<-plot_ly(x = format.Date(major_winds$Date, "%m%d"), type = "histogram")
 
 ## This script looks at origin of specificed system and finds first 10 nearest tracks
 ## within +/- 1 Lat/Lng of origin. 
 
 hur_start<-hur[!duplicated(hur$ID), ] #Dataset of only origin of systems.
+
+
 
 example<-hur %>%
   filter(Date >= "2004-01-01" & Date <= "2005-02-01" & Name == 'CHARLEY',)%>%
