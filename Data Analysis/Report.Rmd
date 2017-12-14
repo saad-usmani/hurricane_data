@@ -55,7 +55,7 @@ In the above code, we read in the file, converted it into a data frame that woul
 
 The cleaning, as you can see, is very simple, but it allows us to create some truely mesmerizing visualizations. 
 
-The structure of our clearned dataset has over 50,000 single observations of system data throughout time, with over 1,000 unique cases. There are 22 variables in this data set, but we only focus on a few: ID, Year, Date, Time, Latitude, Longitude, Minimum Pressure, Maximum Pressure.
+The structure of our clearned dataset has over 50,000 single observations of system data throughout time, with over 1,000 unique cases. There are 22 variables in this data set, but we only focus on a few: ID, Year, Date, Time, Latitude, Longitude, Minimum Pressure, Maximum Windspeed.
 
 With this knowledge, we can continue to explore - and munge. 
 
