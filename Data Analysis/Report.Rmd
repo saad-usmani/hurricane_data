@@ -43,7 +43,8 @@ For some of the questions, we created an R Shiny application which would allow a
 First, we imported and cleaned the data. This was crucial since this is time series data and there were things we needed to change specifically with the dates that would let R read them properly. We used the 'lubridate' package that made this process fairly easy. 
 
 ```{r}
-hur <- fread(file.path("C:/Users/susmani/Documents/Year 5/Courses/Data Munging/GroupProject2/hurricane.csv"),na.strings = c("PrivacySuppressed", "NULL"))
+dir <- "/home/crypdick/Apps/masters/eda/hurricane_data/hurricane.csv"
+hur <- fread(file.path(dir),na.strings = c("PrivacySuppressed", "NULL"))
 hur<-data.frame(hur)
 hur$Date<-ymd(hur$Date)
 hur$Latitude<-as.numeric(unlist(strsplit(hur$Latitude, split='N', fixed=TRUE)))
@@ -161,7 +162,7 @@ Again, we can't really say for certain. The frequency of major hurricanes doesn'
 Let's look at frequency of hurricanes by month in a 2D Density heat map.
 
 ```{r}
-##Creating a heatmap of origin of all hurricane data
+##Creating a heatmap of all hurricane paths
 atlantic_map<-get_map(location = "puerto rico", zoom = 4)
 
 hur.aug.freq<-hur[format.Date(hur$Date, "%m")=="08",]
@@ -172,14 +173,14 @@ hur.nov.freq<-hur[format.Date(hur$Date, "%m")=="11",]
 par(mfrow = c(2,2))
 
 #second, plotting density maps across the
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.aug.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.aug.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.aug.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.aug.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE) + ggtitle("Pathways hurricanes, storms, and depressions (Aug)")
 
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.sep.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.sep.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.sep.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.sep.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE) + ggtitle("Pathways of all hurricanes, storms, and depressions (Sept)")
 
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.oct.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.oct.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.oct.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.oct.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE) + ggtitle("Pathways of all hurricanes, storms, and depressions (Oct)")
 
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.nov.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.nov.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.5), guide = FALSE)
-```
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = hur.nov.freq, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = hur.nov.freq, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.5), guide = FALSE) + ggtitle("Pathways of all hurricanes, storms, and depressions (Nov)")
+``` 
 
 We see some interesting relationships between the peak months of August - November. The second week of Semptember is considered the climatogical peak of the season, and as we can seethe heatmap from that month is practically all over the place and covering most of the Atlantic ocean and southern coasts. 
 
@@ -188,21 +189,19 @@ It's even more interesting to see how close August and September tracks seem to 
 That looked fantastic, but can we see where the maximum winds were located for all systems?
 
 ```{r}
-
 par(mfrow = c(1,1))
-
 ```
 
 For all systems and where they got their peak strength:
 
 ```{r}
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = max_winds, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = max_winds, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = max_winds, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = max_winds, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE) + ggtitle("Peak windspeed locations for all systems (all months)")
 ```
 
 For all major hurricanes [>96 kt (110 mph)] and where they accumlated their peak strength:
 
 ```{r}
-ggmap(atlantic_map, extent = "device") + geom_density2d(data = major_winds, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = major_winds, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE)
+ggmap(atlantic_map, extent = "device") + geom_density2d(data = major_winds, aes(x = Longitude, y = Latitude), size = 0.3) + stat_density2d(data = major_winds, aes(x = Longitude, y = Latitude, fill = ..level.., alpha = ..level..), size = 0.01,bins = 16, geom = "polygon") + scale_fill_gradient(low = "green", high = "red") + scale_alpha(range = c(0, 0.3), guide = FALSE) + ggtitle("Peak windspeed locations for major hurricanes only")
 ```
 
 It's interesting to see that for all systems (hurricanes, tropical storms, tropical depression), the peak strength was along the east coast. But, when we only account for major hurricanes, we see a long strip through the upper carribean and Bahamas where storms accumulated their peak strength. It's interesting to also see that both Category 5 hurricanes from 2017 (Irma and Maria) from this year also accumulated their maximum wind along this strip. 
@@ -233,7 +232,8 @@ m <- loess(Maximum.Wind ~ Minimum.Pressure, data = max_winds2)
               name = "Standard Error") %>%
   layout(xaxis = list(title = 'Minimum Pressure (mb)'),
          yaxis = list(title = 'Maximum Winds (kt)'),
-         legend = list(x = 0.80, y = 0.90)))
+         legend = list(x = 0.80, y = 0.90),
+         title = "Relationship of minimum pressure and maximum windspeeds"))
 
 summary(lm(Maximum.Wind ~ Minimum.Pressure, data = max_winds2))
 ```
